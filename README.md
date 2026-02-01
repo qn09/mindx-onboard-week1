@@ -29,8 +29,7 @@
 - [Phase 5: Ingress Configuration](#phase-5-ingress-configuration)
 - [Phase 6: OpenID Connect Authentication](#phase-6-openid-connect-authentication)
 - [Phase 7: HTTPS & SSL Certificates](#phase-7-https--ssl-certificates)
-- [Troubleshooting Guide](#troubleshooting-guide)
-- [Maintenance & Operations](#maintenance--operations)
+
 
 ---
 
@@ -436,9 +435,9 @@ const API_URL = 'http://localhost:3001';
 const API_URL = '';  // Empty string for relative paths
 
 // Update all API calls to include /api prefix:
-fetch(`${API_URL}/api/posts`)      // ✓ Correct
-fetch(`${API_URL}/api/health`)     // ✓ Correct
-fetch(`${API_URL}/api/auth/login`) // ✓ Correct
+fetch(`${API_URL}/api/posts`)      
+fetch(`${API_URL}/api/health`)     
+fetch(`${API_URL}/api/auth/login`) 
 ```
 
 ### 4.2 Rebuild Frontend with API Changes
