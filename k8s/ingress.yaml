@@ -12,7 +12,7 @@ spec:
     - quannv.id.vn
     secretName: blog-tls-cert
   rules:
-  - host: 
+  - host: quannv.id.vn
     http:
       paths:
       - path: /api
