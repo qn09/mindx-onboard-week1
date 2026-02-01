@@ -17,7 +17,7 @@ const OPENID_CONFIG = {
   userInfoEndpoint: 'https://id-dev.mindx.edu.vn/me',              
   clientId: process.env.OPENID_CLIENT_ID || 'your-client-id',
   clientSecret: process.env.OPENID_CLIENT_SECRET || 'your-client-secret',
-  redirectUri: process.env.OPENID_REDIRECT_URI || 'https://quannv.id.vn/api/auth/callback',
+  redirectUri: process.env.OPENID_REDIRECT_URI || 'https://quannv.id.vn/api/auth/callback', //update RedirectUri
   scope: 'openid profile email'
 };
 
@@ -194,13 +194,6 @@ app.get('/api/auth/me', authenticateUser, (req, res) => {
 });
 
 // Health Check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    message: 'Server is running',
-    timestamp: new Date().toISOString()
-  });
-});
 
 app.get('/api/health', (req, res) => {
   res.json({ 
