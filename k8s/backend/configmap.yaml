@@ -7,6 +7,6 @@ metadata:
     app: blog-backend
 data:
   NODE_ENV: "production"
-  OPENID_REDIRECT_URI: "http://localhost:3000/auth/callback"
+  OPENID_REDIRECT_URI: "https://quannv.id.vn/api/auth/callback " 
   LOG_LEVEL: "info"
   API_PORT: "3001"

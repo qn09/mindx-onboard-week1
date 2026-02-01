@@ -26,9 +26,9 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory database
-let sessions = {}; // Store active sessions
-let comments = {}; // Store comments by post slug
-let userLikes = {}; // Store user likes {userId: [slugs]}
+let sessions = {}; 
+let comments = {}; 
+let userLikes = {}; 
 
 let posts = [
   {
@@ -87,7 +87,7 @@ const authenticateUser = (req, res, next) => {
   next();
 };
 
-// Optional authentication - doesn't block if not logged in
+// Optional authentication 
 const optionalAuth = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
@@ -294,11 +294,11 @@ app.put('/api/posts/:slug/like', authenticateUser, (req, res) => {
   const likeIndex = userLikes[userId].indexOf(post.slug);
   
   if (likeIndex === -1) {
-    // Like the post
+   
     userLikes[userId].push(post.slug);
     post.likes++;
   } else {
-    // Unlike the post
+
     userLikes[userId].splice(likeIndex, 1);
     post.likes--;
   }

@@ -46,7 +46,7 @@ spec:
               name: blog-backend-secrets
               key: openid-client-secret
         - name: OPENID_REDIRECT_URI
-          value: "http://localhost:3000/auth/callback"
+          value: "https://quannv.id.vn/api/auth/callback " 
         livenessProbe:
           httpGet:
             path: /api/posts
