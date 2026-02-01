@@ -32,7 +32,7 @@ EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 
 
-# Tạo thư mục cache và set permissions
+
 RUN mkdir -p /var/cache/nginx/client_temp \
     /var/cache/nginx/proxy_temp \
     /var/cache/nginx/fastcgi_temp \
@@ -42,9 +42,8 @@ RUN mkdir -p /var/cache/nginx/client_temp \
     chmod -R 777 /var/run && \
     chmod -R 777 /etc/nginx/conf.d
 
-# Copy nginx config và code của bạn
+
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY . /usr/share/nginx/html
 
-# Chạy nginx với user nginx (không cần root)
 USER nginx
