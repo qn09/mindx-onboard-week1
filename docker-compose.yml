@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blog-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - OPENID_CLIENT_ID=${OPENID_CLIENT_ID:-your-client-id}
+      - OPENID_CLIENT_SECRET=${OPENID_CLIENT_SECRET:-your-client-secret}
+      - OPENID_REDIRECT_URI=${OPENID_REDIRECT_URI:-http://localhost:3000/auth/callback}
+    networks:
+      - blog-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/posts', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./blog-frontend
+      dockerfile: Dockerfile
+    container_name: blog-frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+networks:
+  blog-network:
+    driver: bridge
+
+volumes:
+  backend-data:
