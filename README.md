@@ -19,7 +19,7 @@
 - [Phase 4: Frontend Application Deployment](#phase-4-frontend-application-deployment)
 - [Phase 5: Ingress Configuration](#phase-5-ingress-configuration)
 - [Phase 6: OpenID Connect Authentication](#phase-6-openid-connect-authentication)
-- [Phase 7: HTTPS & SSL Certificates
+- [Phase 7: HTTPS & SSL Certificates](#Phase-7-HTTPS-SSL-Certificates)
 
 ---
 
@@ -499,7 +499,7 @@ curl http://20.255.125.147/api/posts
 - **Token Endpoint:** `https://id-dev.mindx.edu.vn/token`
 - **UserInfo Endpoint:** `https://id-dev.mindx.edu.vn/me`
 - **Client ID:**  `mindx-onboarding`
-- **Client Secret:** `cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU=`
+- **Client Secret:** 
 
 
 
@@ -523,7 +523,7 @@ Update `.env`:
 
 ```plaintext
 OPENID_CLIENT_ID=mindx-onboarding
-OPENID_CLIENT_SECRET=cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU=
+OPENID_CLIENT_SECRET=
 OPENID_REDIRECT_URI=https://quannv.id.vn/api/auth/callback 
 ```
 ### 6.3 Create OpenID Secret
