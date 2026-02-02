@@ -508,12 +508,10 @@ curl http://20.255.125.147/api/posts
 - **Authorization Endpoint:** `https://id-dev.mindx.edu.vn/auth`
 - **Token Endpoint:** `https://id-dev.mindx.edu.vn/token`
 - **UserInfo Endpoint:** `https://id-dev.mindx.edu.vn/me`
-- **Client ID:** `mindx-onboarding`
+- **Client ID:**  `mindx-onboarding`
 - **Client Secret:** `cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU=`
 
-**Test Account:**
-- Email: `intern@mindx.com.vn`
-- Password: `mindx1234`
+
 
 ### 6.2 Backend OpenID Configuration
 
@@ -525,19 +523,25 @@ const OPENID_CONFIG = {
   authorizationEndpoint: 'https://id-dev.mindx.edu.vn/auth',
   tokenEndpoint: 'https://id-dev.mindx.edu.vn/token',
   userInfoEndpoint: 'https://id-dev.mindx.edu.vn/me',
-  clientId: process.env.OPENID_CLIENT_ID || 'mindx-onboarding',
-  clientSecret: process.env.OPENID_CLIENT_SECRET || 'your-client-secret',
-  redirectUri: process.env.OPENID_REDIRECT_URI || 'https://quannv.id.vn/api/auth/callback',
+  clientId: process.env.OPENID_CLIENT_ID 
+  clientSecret: process.env.OPENID_CLIENT_SECRET 
+  redirectUri: process.env.OPENID_REDIRECT_URI
   scope: 'openid profile email'
 };
 ```
+Update `.env`:
 
+```plaintext
+OPENID_CLIENT_ID=mindx-onboarding
+OPENID_CLIENT_SECRET=cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU=
+OPENID_REDIRECT_URI=https://quannv.id.vn/api/auth/callback 
+```
 ### 6.3 Create OpenID Secret
 
 ```bash
 kubectl create secret generic blog-backend-openid \
-  --from-literal=OPENID_CLIENT_ID='mindx-onboarding' \
-  --from-literal=OPENID_CLIENT_SECRET='cHJldmVudGJvdW5kYmF0dHJlZWV4cGxvcmVjZWxsbmVydm91c3ZhcG9ydGhhbnN0ZWU=' \
+  --from-literal=OPENID_CLIENT_ID='' \
+  --from-literal=OPENID_CLIENT_SECRET='=' \
   --from-literal=OPENID_REDIRECT_URI='https://quannv.id.vn/api/auth/callback'
 
 # Verify secret
@@ -561,10 +565,9 @@ kubectl get pods -l app=blog-backend
 
 ### 6.5 Register Redirect URI with MindX
 
-**Contact MindX team to add redirect URI:**
+**Contact Mrs. Duyen to add redirect URI:**
 
 ```
-Request: Please add the following redirect URI to the mindx-onboarding client:
 
 Redirect URI: https://quannv.id.vn/api/auth/callback
 
