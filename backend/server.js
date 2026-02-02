@@ -15,8 +15,8 @@ const OPENID_CONFIG = {
   authorizationEndpoint: 'https://id-dev.mindx.edu.vn/auth',     
   tokenEndpoint: 'https://id-dev.mindx.edu.vn/token',              
   userInfoEndpoint: 'https://id-dev.mindx.edu.vn/me',              
-  clientId: process.env.OPENID_CLIENT_ID || 'your-client-id',
-  clientSecret: process.env.OPENID_CLIENT_SECRET || 'your-client-secret',
+  clientId: process.env.OPENID_CLIENT_ID ,
+  clientSecret: process.env.OPENID_CLIENT_SECRET ,
   redirectUri: process.env.OPENID_REDIRECT_URI || 'https://quannv.id.vn/api/auth/callback', //update RedirectUri
   scope: 'openid profile email'
 };
@@ -115,7 +115,18 @@ app.get('/api/auth/login-url', (req, res) => {
   
   res.json({ authUrl, state });
 });
-
+app.get('/api/auth/callback', (req, res) => {
+  const { code, state } = req.query;
+  
+  console.log('Received OAuth callback:', { code, state });
+  
+  if (!code) {
+    return res.status(400).send('Missing authorization code');
+  }
+  
+  
+  res.redirect(`/?code=${code}${state ? '&state=' + state : ''}`);
+});
 app.post('/api/auth/callback', async (req, res) => {
   const { code } = req.body;
   
