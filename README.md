@@ -4,15 +4,6 @@
 
 **Project Overview:** A full-stack blog application with React frontend and Node.js backend, deployed on Azure Kubernetes Service (AKS) with OpenID Connect authentication, HTTPS/SSL, and production-ready configurations.
 
-## 🏗 System Architecture
-* **Frontend**: React SPA served via Nginx (Port 80).
-* **Backend**: Node.js Express REST API (Port 3001).
-* **Container Registry**: Azure Container Registry (ACR).
-* **Orchestration**: Azure Kubernetes Service (AKS).
-* **Ingress**: Nginx Ingress Controller (Path-based routing).
-* **Security**: Cert-manager with Let's Encrypt (Automated HTTPS).
-* **Domain**: `quannv.id.vn`.
-
 **Live Application:** https://quannv.id.vn
 
 ---
@@ -28,8 +19,7 @@
 - [Phase 4: Frontend Application Deployment](#phase-4-frontend-application-deployment)
 - [Phase 5: Ingress Configuration](#phase-5-ingress-configuration)
 - [Phase 6: OpenID Connect Authentication](#phase-6-openid-connect-authentication)
-- [Phase 7: HTTPS & SSL Certificates](#phase-7-https--ssl-certificates)
-
+- [Phase 7: HTTPS & SSL Certificates
 
 ---
 
@@ -573,6 +563,16 @@ Redirect URI: https://quannv.id.vn/api/auth/callback
 
 Client ID: mindx-onboarding
 ```
+
+### 6.6 Authentication Flow
+
+1.  **Initiate Login**: Frontend requests a login URL from the Backend, which then redirects the user to the MindX Identity Server (IdP).
+2.  **User Authentication**: The user authenticates and grants consent on the IdP's page.
+3.  **Authorization Code**: The IdP redirects back to the application's configured `redirect_uri` with an authorization `code`.
+4.  **Token Exchange**: The Backend exchanges this `code` with the IdP for an `access_token` and user information.
+5.  **Session Management**: The Backend creates an in-memory session for the user, returning a `sessionToken` and user details to the Frontend.
+6.  **Authenticated Access**: The Frontend stores the `sessionToken` and uses it to authorize subsequent API calls.
+7.  **Logout**: On logout, the session is invalidated both in the Frontend and Backend.
 
 ---
 
