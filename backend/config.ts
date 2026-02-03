@@ -4,7 +4,7 @@
 
 export const MINDX_ISSUER = process.env.MINDX_ISSUER || 'https://id-dev.mindx.edu.vn';
 export const CLIENT_ID = process.env.OPENID_CLIENT_ID || '';
-export const MINDX_JWKS_URI = process.env.MINDX_JWKS_URI || 'https://id-dev.mindx.edu.vn/.well-known/jwks.json';
+export const MINDX_JWKS_URI = process.env.MINDX_JWKS_URI || 'https://id-dev.mindx.edu.vn/jwks';
 
 // Validate required environment variables
 if (!CLIENT_ID) {
