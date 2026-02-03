@@ -11,13 +11,13 @@ services:
     environment:
       - NODE_ENV=production
       - OPENID_CLIENT_ID=${OPENID_CLIENT_ID:-your-client-id}
-      - OPENID_CLIENT_SECRET=${OPENID_CLIENT_SECRET:-your-client-secret}
-      - OPENID_REDIRECT_URI=${OPENID_REDIRECT_URI:-http://localhost:3000/auth/callback}
+      - MINDX_ISSUER=${MINDX_ISSUER:-https://id-dev.mindx.edu.vn}
+      - MINDX_JWKS_URI=${MINDX_JWKS_URI:-https://id-dev.mindx.edu.vn/.well-known/jwks.json}
     networks:
       - blog-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/posts', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
       interval: 30s
       timeout: 3s
       retries: 3

@@ -1,48 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
-const jwt = require('jsonwebtoken');
+const { verifyMindXIdToken, createDisplayName } = require('./auth');
 const app = express();
 const PORT = 3001;
 
-// JWT Secret (nên đặt trong environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Headers:`, req.headers);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-// OpenID Configuration
-const OPENID_CONFIG = {
-  issuer: 'https://id-dev.mindx.edu.vn',
-  authorizationEndpoint: 'https://id-dev.mindx.edu.vn/auth',     
-  tokenEndpoint: 'https://id-dev.mindx.edu.vn/token',              
-  userInfoEndpoint: 'https://id-dev.mindx.edu.vn/me',              
-  clientId: process.env.OPENID_CLIENT_ID ,
-  clientSecret: process.env.OPENID_CLIENT_SECRET ,
-  redirectUri: process.env.OPENID_REDIRECT_URI || 'https://quannv.id.vn/api/auth/callback', //update RedirectUri
-  scope: 'openid profile email'
-};
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // In-memory database
-let userCache = {}; // Cache user info by access token to avoid repeated API calls
+let userCache = new Map(); // Cache user info by token
 let comments = {}; 
 let userLikes = {}; 
 
 // Cache cleanup - remove entries older than 1 hour
 setInterval(() => {
   const now = Date.now();
-  Object.keys(userCache).forEach(token => {
-    if (now - userCache[token].cachedAt > 3600000) { // 1 hour
-      delete userCache[token];
+  for (const [token, data] of userCache.entries()) {
+    if (now - data.cachedAt > 3600000) { // 1 hour
+      userCache.delete(token);
     }
-  });
-  console.log(`[Cache Debug] Active cached users: ${Object.keys(userCache).length}`);
+  }
+  console.log(`[Cache] Active cached users: ${userCache.size}`);
 }, 300000); // Run every 5 minutes 
 
 let posts = [
@@ -90,266 +75,138 @@ let posts = [
 let categories = ["Tất cả", "Du lịch", "Công nghệ", "Ẩm thực", "Đời sống", "Kinh nghiệm"];
 let nextId = 4;
 
-// Authentication Middleware - validates OpenID access token
+// Authentication Middleware - validates JWT token with JWKS
 const authenticateUser = async (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+  const authHeader = req.headers.authorization;
   
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized', message: 'No token provided' });
   }
+
+  const token = authHeader.replace('Bearer ', '');
   
   try {
     // Check cache first
-    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) { // 10 min cache
-      req.user = userCache[token].user;
-      req.accessToken = token;
+    const cached = userCache.get(token);
+    if (cached && (Date.now() - cached.cachedAt < 600000)) { // 10 min cache
+      req.user = cached.user;
+      req.tokenPayload = cached.tokenPayload;
       return next();
     }
     
-    // Validate token with OpenID provider
-    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    // Verify JWT token with JWKS
+    console.log('🔐 Verifying JWT token...');
+    const payload = await verifyMindXIdToken(token);
     
-    if (!userInfoResponse.ok) {
-      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token' });
-    }
-    
-    const userInfo = await userInfoResponse.json();
+    // Create user object from token payload
+    const user = {
+      id: payload.sub,
+      username: payload.preferred_username || payload.email || payload.sub,
+      name: createDisplayName(payload),
+      email: payload.email || '',
+      avatar: payload.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${payload.sub}`
+    };
     
     // Cache user info
-    const user = {
-      id: userInfo.sub || userInfo.id,
-      username: userInfo.preferred_username || userInfo.username || userInfo.email,
-      name: userInfo.name || userInfo.preferred_username || 'User',
-      email: userInfo.email,
-      avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
-    };
-    
-    userCache[token] = {
+    userCache.set(token, {
       user,
+      tokenPayload: payload,
       cachedAt: Date.now()
-    };
+    });
     
     req.user = user;
-    req.accessToken = token;
+    req.tokenPayload = payload;
+    
+    console.log(`✅ User authenticated: ${user.name} (${user.email})`);
     next();
   } catch (error) {
-    console.error('Token validation error:', error);
-    return res.status(401).json({ error: 'Unauthorized', message: 'Token validation failed' });
+    console.error('❌ Token validation error:', error.message);
+    return res.status(401).json({ 
+      error: 'Unauthorized', 
+      message: error.message || 'Token validation failed' 
+    });
   }
 };
 
 // Optional authentication - doesn't fail if no token
 const optionalAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+  const authHeader = req.headers.authorization;
   
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next();
   }
+
+  const token = authHeader.replace('Bearer ', '');
   
   try {
     // Check cache
-    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) {
-      req.user = userCache[token].user;
-      req.accessToken = token;
+    const cached = userCache.get(token);
+    if (cached && (Date.now() - cached.cachedAt < 600000)) {
+      req.user = cached.user;
+      req.tokenPayload = cached.tokenPayload;
       return next();
     }
     
-    // Validate with OpenID provider
-    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
-      headers: { 'Authorization': `Bearer ${token}` },
+    // Verify JWT token
+    const payload = await verifyMindXIdToken(token);
+    
+    const user = {
+      id: payload.sub,
+      username: payload.preferred_username || payload.email || payload.sub,
+      name: createDisplayName(payload),
+      email: payload.email || '',
+      avatar: payload.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${payload.sub}`
+    };
+    
+    userCache.set(token, {
+      user,
+      tokenPayload: payload,
+      cachedAt: Date.now()
     });
     
-    if (userInfoResponse.ok) {
-      const userInfo = await userInfoResponse.json();
-      const user = {
-        id: userInfo.sub || userInfo.id,
-        username: userInfo.preferred_username || userInfo.username || userInfo.email,
-        name: userInfo.name || userInfo.preferred_username || 'User',
-        email: userInfo.email,
-        avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
-      };
-      
-      userCache[token] = { user, cachedAt: Date.now() };
-      req.user = user;
-      req.accessToken = token;
-    }
+    req.user = user;
+    req.tokenPayload = payload;
   } catch (error) {
-    console.error('Optional auth error:', error);
+    console.error('⚠️ Optional auth error:', error.message);
   }
   
   next();
 };
 
-// Health check endpoint (không cần auth)
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Generate session token
-const generateToken = () => {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-};
-
-// OpenID Connect Routes
-app.get('/api/auth/login-url', (req, res) => {
-  const state = generateToken();
-  const authUrl = `${OPENID_CONFIG.authorizationEndpoint}?` + 
-    `client_id=${OPENID_CONFIG.clientId}&` +
-    `redirect_uri=${encodeURIComponent(OPENID_CONFIG.redirectUri)}&` +
-    `response_type=code&` +
-    `scope=${encodeURIComponent(OPENID_CONFIG.scope)}&` +
-    `state=${state}`;
-  
-  res.json({ authUrl, state });
-});
-app.get('/api/auth/callback', (req, res) => {
-  const { code, state } = req.query;
-  
-  console.log('Received OAuth callback:', { code, state });
-  
-  if (!code) {
-    return res.status(400).send('Missing authorization code');
-  }
-  
-  
-  res.redirect(`/?code=${code}${state ? '&state=' + state : ''}`);
-});
-app.post('/api/auth/callback', async (req, res) => {
-  const { code } = req.body;
-  
-  if (!code) {
-    return res.status(400).json({ error: 'Authorization code is required' });
-  }
-  
-  try {
-    // Exchange authorization code for access token
-    const tokenResponse = await fetch(OPENID_CONFIG.tokenEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: OPENID_CONFIG.redirectUri,
-        client_id: OPENID_CONFIG.clientId,
-        client_secret: OPENID_CONFIG.clientSecret,
-      }),
-    });
-    
-    if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('Token exchange failed:', errorData);
-      return res.status(400).json({ error: 'Failed to exchange authorization code' });
-    }
-    
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
-    
-    // Get user info
-    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-    
-    if (!userInfoResponse.ok) {
-      return res.status(400).json({ error: 'Failed to fetch user info' });
-    }
-    
-    const userInfo = await userInfoResponse.json();
-    
-    // Return OpenID access token directly (not creating separate session)
-    const user = {
-      id: userInfo.sub || userInfo.id,
-      username: userInfo.preferred_username || userInfo.username || userInfo.email,
-      name: userInfo.name || userInfo.preferred_username || 'User',
-      email: userInfo.email,
-      avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
-    };
-    
-    // Cache user info with the access token
-    userCache[accessToken] = {
-      user,
-      cachedAt: Date.now()
-    };
-    
-    console.log(`[Auth] User logged in: ${user.name} (${user.email})`);
-    
-    res.json({
-      token: accessToken, // Return OpenID access token
-      user: user
-    });
-  } catch (error) {
-    console.error('Authentication error:', error);
-    res.status(500).json({ error: 'Authentication failed', details: error.message });
-  }
-});
-
-app.post('/api/auth/logout', (req, res) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (token && userCache[token]) {
-    delete userCache[token];
-    console.log(`[Auth] User logged out, token removed from cache`);
-  }
-  res.json({ message: 'Logged out successfully' });
-});
-
-app.get('/api/auth/me', async (req, res) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized', code: 'NO_TOKEN' });
-  }
-  
-  try {
-    // Check cache first
-    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) {
-      return res.json({ user: userCache[token].user });
-    }
-    
-    // Validate with OpenID provider
-    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    
-    if (!userInfoResponse.ok) {
-      return res.status(401).json({ error: 'Unauthorized', code: 'INVALID_TOKEN' });
-    }
-    
-    const userInfo = await userInfoResponse.json();
-    const user = {
-      id: userInfo.sub || userInfo.id,
-      username: userInfo.preferred_username || userInfo.username || userInfo.email,
-      name: userInfo.name || userInfo.preferred_username || 'User',
-      email: userInfo.email,
-      avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
-    };
-    
-    // Update cache
-    userCache[token] = { user, cachedAt: Date.now() };
-    
-    res.json({ user });
-  } catch (error) {
-    console.error('Token verification error:', error);
-    return res.status(401).json({ error: 'Unauthorized', code: 'VALIDATION_FAILED' });
-  }
-});
-
-// Health Check
-
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok',
     service: 'blog-backend',
     uptime: process.uptime(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString() 
   });
 });
+
+// Authentication routes
+app.get('/api/auth/me', authenticateUser, (req, res) => {
+  res.json({ 
+    user: req.user,
+    tokenInfo: {
+      iss: req.tokenPayload?.iss,
+      aud: req.tokenPayload?.aud,
+      exp: req.tokenPayload?.exp,
+      iat: req.tokenPayload?.iat,
+    }
+  });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.replace('Bearer ', '');
+    userCache.delete(token);
+    console.log('[Auth] User logged out, token removed from cache');
+  }
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Health Check (duplicate removed)
 
 // API Routes
 app.get('/api/posts', optionalAuth, (req, res) => {
@@ -526,5 +383,6 @@ app.get('/api/categories', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
