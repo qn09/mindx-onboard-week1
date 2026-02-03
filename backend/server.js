@@ -1,8 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = 3001;
+
+// JWT Secret (nên đặt trong environment variable)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -26,9 +30,20 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory database
-let sessions = {}; 
+let userCache = {}; // Cache user info by access token to avoid repeated API calls
 let comments = {}; 
 let userLikes = {}; 
+
+// Cache cleanup - remove entries older than 1 hour
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(userCache).forEach(token => {
+    if (now - userCache[token].cachedAt > 3600000) { // 1 hour
+      delete userCache[token];
+    }
+  });
+  console.log(`[Cache Debug] Active cached users: ${Object.keys(userCache).length}`);
+}, 300000); // Run every 5 minutes 
 
 let posts = [
   {
@@ -75,28 +90,104 @@ let posts = [
 let categories = ["Tất cả", "Du lịch", "Công nghệ", "Ẩm thực", "Đời sống", "Kinh nghiệm"];
 let nextId = 4;
 
-// Authentication Middleware
-const authenticateUser = (req, res, next) => {
+// Authentication Middleware - validates OpenID access token
+const authenticateUser = async (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
-  if (!token || !sessions[token]) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized', message: 'No token provided' });
   }
   
-  req.user = sessions[token];
+  try {
+    // Check cache first
+    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) { // 10 min cache
+      req.user = userCache[token].user;
+      req.accessToken = token;
+      return next();
+    }
+    
+    // Validate token with OpenID provider
+    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!userInfoResponse.ok) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid token' });
+    }
+    
+    const userInfo = await userInfoResponse.json();
+    
+    // Cache user info
+    const user = {
+      id: userInfo.sub || userInfo.id,
+      username: userInfo.preferred_username || userInfo.username || userInfo.email,
+      name: userInfo.name || userInfo.preferred_username || 'User',
+      email: userInfo.email,
+      avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
+    };
+    
+    userCache[token] = {
+      user,
+      cachedAt: Date.now()
+    };
+    
+    req.user = user;
+    req.accessToken = token;
+    next();
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return res.status(401).json({ error: 'Unauthorized', message: 'Token validation failed' });
+  }
+};
+
+// Optional authentication - doesn't fail if no token
+const optionalAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return next();
+  }
+  
+  try {
+    // Check cache
+    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) {
+      req.user = userCache[token].user;
+      req.accessToken = token;
+      return next();
+    }
+    
+    // Validate with OpenID provider
+    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    
+    if (userInfoResponse.ok) {
+      const userInfo = await userInfoResponse.json();
+      const user = {
+        id: userInfo.sub || userInfo.id,
+        username: userInfo.preferred_username || userInfo.username || userInfo.email,
+        name: userInfo.name || userInfo.preferred_username || 'User',
+        email: userInfo.email,
+        avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
+      };
+      
+      userCache[token] = { user, cachedAt: Date.now() };
+      req.user = user;
+      req.accessToken = token;
+    }
+  } catch (error) {
+    console.error('Optional auth error:', error);
+  }
+  
   next();
 };
 
-// Optional authentication 
-const optionalAuth = (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
-  if (token && sessions[token]) {
-    req.user = sessions[token];
-  }
-  
-  next();
-};
+// Health check endpoint (không cần auth)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Generate session token
 const generateToken = () => {
@@ -172,9 +263,8 @@ app.post('/api/auth/callback', async (req, res) => {
     
     const userInfo = await userInfoResponse.json();
     
-    // Create session
-    const sessionToken = generateToken();
-    const userSession = {
+    // Return OpenID access token directly (not creating separate session)
+    const user = {
       id: userInfo.sub || userInfo.id,
       username: userInfo.preferred_username || userInfo.username || userInfo.email,
       name: userInfo.name || userInfo.preferred_username || 'User',
@@ -182,11 +272,17 @@ app.post('/api/auth/callback', async (req, res) => {
       avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
     };
     
-    sessions[sessionToken] = userSession;
+    // Cache user info with the access token
+    userCache[accessToken] = {
+      user,
+      cachedAt: Date.now()
+    };
+    
+    console.log(`[Auth] User logged in: ${user.name} (${user.email})`);
     
     res.json({
-      token: sessionToken,
-      user: userSession
+      token: accessToken, // Return OpenID access token
+      user: user
     });
   } catch (error) {
     console.error('Authentication error:', error);
@@ -194,14 +290,54 @@ app.post('/api/auth/callback', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', authenticateUser, (req, res) => {
+app.post('/api/auth/logout', (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  delete sessions[token];
+  if (token && userCache[token]) {
+    delete userCache[token];
+    console.log(`[Auth] User logged out, token removed from cache`);
+  }
   res.json({ message: 'Logged out successfully' });
 });
 
-app.get('/api/auth/me', authenticateUser, (req, res) => {
-  res.json({ user: req.user });
+app.get('/api/auth/me', async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'NO_TOKEN' });
+  }
+  
+  try {
+    // Check cache first
+    if (userCache[token] && (Date.now() - userCache[token].cachedAt < 600000)) {
+      return res.json({ user: userCache[token].user });
+    }
+    
+    // Validate with OpenID provider
+    const userInfoResponse = await fetch(OPENID_CONFIG.userInfoEndpoint, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    
+    if (!userInfoResponse.ok) {
+      return res.status(401).json({ error: 'Unauthorized', code: 'INVALID_TOKEN' });
+    }
+    
+    const userInfo = await userInfoResponse.json();
+    const user = {
+      id: userInfo.sub || userInfo.id,
+      username: userInfo.preferred_username || userInfo.username || userInfo.email,
+      name: userInfo.name || userInfo.preferred_username || 'User',
+      email: userInfo.email,
+      avatar: userInfo.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userInfo.sub || userInfo.id}`
+    };
+    
+    // Update cache
+    userCache[token] = { user, cachedAt: Date.now() };
+    
+    res.json({ user });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return res.status(401).json({ error: 'Unauthorized', code: 'VALIDATION_FAILED' });
+  }
 });
 
 // Health Check
