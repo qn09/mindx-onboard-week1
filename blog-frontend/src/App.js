@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Calendar, Eye, Plus, X, ArrowLeft, LogIn, LogOut, User, MessageCircle, Trash2 } from 'lucide-react';
+import { Heart, Search, Calendar, Eye, Plus, X, ArrowLeft, LogIn, LogOut, User, MessageCircle, Trash2, Lock } from 'lucide-react';
 import './App.css';
 
-const API_URL = '';
+const API_URL = 'https://quannv.id.vn';
 
 // Authentication Context
 const AuthContext = React.createContext(null);
@@ -114,8 +114,58 @@ function App() {
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>
-      <BlogApp />
+      {user ? <BlogApp /> : <LoginPage />}
     </AuthContext.Provider>
+  );
+}
+
+function LoginPage() {
+  const { login } = React.useContext(AuthContext);
+
+  return (
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-content">
+          <div className="login-header">
+            <h1 className="login-logo">
+              <span className="logo-main">Nhật Ký</span>
+              <span className="logo-sub">của tôi</span>
+            </h1>
+            <p className="login-tagline">Chia sẻ câu chuyện của bạn với thế giới</p>
+          </div>
+
+          <div className="login-illustration">
+            <div className="illustration-circle"></div>
+            <div className="illustration-icon">📝</div>
+          </div>
+
+          <div className="login-actions">
+            <p className="login-description">
+              Đăng nhập để viết bài, bình luận và tương tác với cộng đồng
+            </p>
+            <button className="login-page-btn" onClick={login}>
+              <LogIn size={24} />
+              <span>Đăng nhập ngay</span>
+            </button>
+          </div>
+
+          <div className="login-features">
+            <div className="feature-item">
+              <div className="feature-icon">✍️</div>
+              <div className="feature-text">Viết bài</div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">💬</div>
+              <div className="feature-text">Bình luận</div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">❤️</div>
+              <div className="feature-text">Thích bài viết</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -281,11 +331,15 @@ function Header({ searchQuery, setSearchQuery, onCreateClick }) {
           <div className="header-actions">
             {user ? (
               <>
-                <button className="create-btn" onClick={onCreateClick}>
+                <button className="create-btn" onClick={onCreateClick} title="Viết bài mới">
                   <Plus size={20} />
                   <span>Viết bài</span>
                 </button>
                 <div className="user-menu">
+                  <div className="user-status">
+                    <span className="status-indicator"></span>
+                    <span className="status-text">Đã đăng nhập</span>
+                  </div>
                   <img src={user.avatar} alt={user.name} className="user-avatar" />
                   <span className="user-name">{user.name}</span>
                   <button className="logout-btn" onClick={logout}>
@@ -294,10 +348,13 @@ function Header({ searchQuery, setSearchQuery, onCreateClick }) {
                 </div>
               </>
             ) : (
-              <button className="login-btn" onClick={login}>
-                <LogIn size={20} />
-                <span>Đăng nhập</span>
-              </button>
+              <div className="not-logged-in">
+                <span className="status-text">Chưa đăng nhập</span>
+                <button className="login-btn" onClick={login} title="Đăng nhập để truy cập các tính năng">
+                  <LogIn size={20} />
+                  <span>Đăng nhập</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -390,10 +447,12 @@ function PostGrid({ posts, onPostClick, onLike }) {
                     disabled={!user}
                     title={!user ? 'Đăng nhập để thích' : ''}
                   >
+                    {!user && <Lock size={14} />}
                     <Heart size={16} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} />
                     {post.likes}
                   </button>
-                  <span className="stat">
+                  <span className="stat comment-stat">
+                    {!user && <Lock size={14} />}
                     <MessageCircle size={16} />
                     {post.commentCount || 0}
                   </span>
@@ -498,6 +557,7 @@ function PostDetail({ post, onBack, onLike, onCommentAdded }) {
                 disabled={!user}
                 title={!user ? 'Đăng nhập để thích' : ''}
               >
+                {!user && <Lock size={16} />}
                 <Heart size={18} fill={post.likedByCurrentUser ? 'currentColor' : 'none'} />
                 {post.likes}
               </button>
