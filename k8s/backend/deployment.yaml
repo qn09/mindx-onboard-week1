@@ -33,8 +33,6 @@ spec:
           containerPort: 3001
           protocol: TCP
         env:
-        - name: NODE_ENV
-          value: "production"
         - name: OPENID_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -46,10 +44,10 @@ spec:
               name: blog-backend-secrets
               key: openid-client-secret
         - name: OPENID_REDIRECT_URI
-          value: "https://quannv.id.vn/api/auth/callback " 
+          value: "https://quannv.id.vn/api/auth/callback" 
         livenessProbe:
           httpGet:
-            path: /api/posts
+            path: /api/health
             port: 3001
           initialDelaySeconds: 10
           periodSeconds: 30
@@ -57,7 +55,7 @@ spec:
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/posts
+            path: /api/health
             port: 3001
           initialDelaySeconds: 5
           periodSeconds: 10
