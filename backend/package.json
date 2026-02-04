@@ -4,7 +4,6 @@
   "description": "Personal Blog Backend API",
   "main": "server.js",
   "scripts": {
-    "build": "tsc",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
