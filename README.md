@@ -1089,7 +1089,7 @@ dependencies
     frequency: PT5M
     timeWindow: PT5M
     actions:
-      - email: quannv@example.com
+      - email: quannv@mindx.com.vn
 
   - name: Slow Response Time
     description: Alert when P95 response time exceeds 2 seconds
@@ -1110,38 +1110,6 @@ dependencies
     threshold: 200000000
     frequency: PT5M
 
-
-#### 8.5.2 Deploy Alerts
-
-Create `monitoring/deploy-alerts.sh`:
-
-```bash
-#!/bin/bash
-
-RESOURCE_GROUP="mindx-intern-01-rg"
-APP_INSIGHTS_NAME="blogapp"
-ACTION_GROUP="blogapp-alerts-action-group"
-
-# Create action group for notifications
-az monitor action-group create \
-  --name $ACTION_GROUP \
-  --resource-group $RESOURCE_GROUP \
-  --short-name "BlogAlert" \
-  --email-receiver "admin" "quannv@example.com"
-
-# Create alert rules
-az monitor scheduled-query create \
-  --name "High-Error-Rate" \
-  --resource-group $RESOURCE_GROUP \
-  --scopes "/subscriptions/<subscription-id>/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Insights/components/$APP_INSIGHTS_NAME" \
-  --condition "count 'Placeholder' > 0" \
-  --condition-query "requests | where timestamp > ago(5m) | summarize total = count(), errors = countif(success == false) | extend errorRate = (errors * 100.0) / total | where errorRate > 5" \
-  --description "Alert when error rate exceeds 5%" \
-  --evaluation-frequency 5m \
-  --window-size 5m \
-  --severity 2 \
-  --action-groups "/subscriptions/<subscription-id>/resourceGroups/$RESOURCE_GROUP/providers/microsoft.insights/actionGroups/$ACTION_GROUP"
-```
 
 ### 8.6 Testing and Verification
 
