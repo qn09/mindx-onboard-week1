@@ -10,6 +10,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=a4c2449c-0966-4f47-b0ab-8a42d26109b6;IngestionEndpoint=https://eastasia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://eastasia.livediagnostics.monitor.azure.com/;ApplicationId=6b2571a0-34b0-4160-8a68-3d0cd52243da
       - OPENID_CLIENT_ID=${OPENID_CLIENT_ID}
       - OPENID_CLIENT_SECRET=${OPENID_CLIENT_SECRET}
       - OPENID_REDIRECT_URI=${OPENID_REDIRECT_URI:-https://quannv.id.vn/api/auth/callback}

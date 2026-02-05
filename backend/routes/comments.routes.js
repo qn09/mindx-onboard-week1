@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const { authenticateUser } = require('../middleware/auth');
+const { trackEvent } = require('../middleware/metrics');
 
 // In-memory comments storage
 let comments = {};
@@ -30,6 +31,13 @@ router.post('/', authenticateUser, (req, res) => {
   };
   
   comments[slug].push(newComment);
+  
+  trackEvent('Comment Created', {
+    postSlug: slug,
+    userId: req.user.id,
+    username: req.user.name
+  });
+  
   res.status(201).json(newComment);
 });
 
@@ -47,6 +55,13 @@ router.delete('/:commentId', authenticateUser, (req, res) => {
   if (commentIndex === -1) {
     return res.status(404).json({ error: 'Comment not found' });
   }
+  
+  trackEvent('Comment Deleted', {
+    postSlug: slug,
+    commentId: parseInt(commentId),
+    userId: req.user.id
+  });
+  
   
   // Check if user is the comment author
   if (postComments[commentIndex].authorId !== req.user.id) {

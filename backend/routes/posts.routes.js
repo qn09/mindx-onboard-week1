@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateUser, optionalAuth } = require('../middleware/auth');
+const { trackEvent, trackMetric } = require('../middleware/metrics');
 
 // In-memory data storage
 let posts = [
@@ -126,6 +127,17 @@ router.post('/', authenticateUser, (req, res) => {
   };
 
   posts.push(newPost);
+  
+  // Track post creation
+  trackEvent('Post Created', {
+    postId: newPost.id,
+    category: newPost.category,
+    userId: req.user.id,
+    username: req.user.name
+  });
+  
+  trackMetric('Total Posts', posts.length);
+  
   res.status(201).json(newPost);
 });
 
@@ -142,20 +154,37 @@ router.put('/:slug/like', authenticateUser, (req, res) => {
   }
   
   const likeIndex = userLikes[userId].indexOf(post.slug);
+  let isLiked = false;
   
   if (likeIndex === -1) {
     // Like the post
     userLikes[userId].push(post.slug);
     post.likes++;
+    isLiked = true;
+    
+    trackEvent('Post Liked', {
+      postId: post.id,
+      postSlug: post.slug,
+      userId: req.user.id,
+      totalLikes: post.likes
+    });
   } else {
     // Unlike the post
     userLikes[userId].splice(likeIndex, 1);
     post.likes--;
+    isLiked = false;
+    
+    trackEvent('Post Unliked', {
+      postId: post.id,
+      postSlug: post.slug,
+      userId: req.user.id,
+      totalLikes: post.likes
+    });
   }
   
   res.json({ 
     ...post, 
-    likedByCurrentUser: likeIndex === -1 
+    likedByCurrentUser: isLiked 
   });
 });
 

@@ -161,6 +161,11 @@ function createDisplayName(payload) {
   if (payload.given_name && payload.family_name) {
     return `${payload.given_name} ${payload.family_name}`;
   }
+  
+  // Priority 2: Use full name field
+  if (payload.name) return payload.name;
+  
+  // Priority 3: Use only given_name
   if (payload.given_name) return payload.given_name;
   if (payload.preferred_username) return payload.preferred_username;
   if (payload.email) return payload.email.split('@')[0];

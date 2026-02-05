@@ -87,6 +87,7 @@ router.post('/callback', async (req, res) => {
     
     const tokenData = await tokenResponse.json();
     const idToken = tokenData.id_token;
+    const accessToken = tokenData.access_token;
     
     if (!idToken) {
       return res.status(400).json({ error: 'No ID token received' });
@@ -96,7 +97,36 @@ router.post('/callback', async (req, res) => {
     
     // Verify ID token using JWKS
     const payload = await verifyMindXIdToken(idToken);
-    const user = createUserFromPayload(payload);
+    let user = createUserFromPayload(payload);
+    
+    // Fetch additional user info from UserInfo endpoint
+    if (accessToken) {
+      try {
+        console.log('📡 Fetching UserInfo from /me...');
+        const userInfoResponse = await fetch('https://id-dev.mindx.edu.vn/me', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        
+        if (userInfoResponse.ok) {
+          const userInfo = await userInfoResponse.json();
+          console.log('✅ UserInfo received:', userInfo);
+          
+          // Merge UserInfo data (prioritize UserInfo over token claims)
+          user = {
+            id: userInfo.sub || user.id,
+            username: userInfo.preferred_username || user.username,
+            name: userInfo.name || user.name,
+            email: userInfo.email || user.email,
+            avatar: userInfo.picture || user.avatar,
+            emailVerified: userInfo.email_verified
+          };
+        }
+      } catch (userInfoError) {
+        console.warn('⚠️ Failed to fetch UserInfo:', userInfoError.message);
+      }
+    }
     
     // Cache user
     userCache.set(idToken, {
@@ -105,7 +135,7 @@ router.post('/callback', async (req, res) => {
       cachedAt: Date.now()
     });
     
-    console.log(`✅ User logged in: ${user.name} (${user.email})`);
+    console.log(`✅ User logged in: ${user.name} (${user.email || 'no email'})`);
     
     res.json({
       token: idToken,

@@ -1,6 +1,14 @@
 # Node
 node_modules
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+blog-frontend/.env
+
 # Logs
 *.log
 npm-debug.log*
