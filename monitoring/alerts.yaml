@@ -1,0 +1,78 @@
+# Azure Application Insights Alert Rules Configuration
+# Deploy using: ./deploy-alerts.sh
+
+alerts:
+  - name: High Error Rate
+    description: Alert when error rate exceeds 5% over 5 minutes
+    severity: 2  # Warning
+    query: |
+      requests
+      | where timestamp > ago(5m)
+      | summarize 
+          total = count(),
+          errors = countif(success == false)
+      | extend errorRate = (errors * 100.0) / total
+      | where errorRate > 5
+    frequency: PT5M  # Check every 5 minutes
+    timeWindow: PT5M  # Look back 5 minutes
+    actions:
+      - type: email
+        email: quannv@example.com
+
+  - name: Slow Response Time
+    description: Alert when P95 response time exceeds 2 seconds
+    severity: 3  # Informational
+    query: |
+      requests
+      | where timestamp > ago(5m)
+      | summarize p95 = percentile(duration, 95)
+      | where p95 > 2000
+    frequency: PT5M
+    timeWindow: PT5M
+    actions:
+      - type: email
+        email: quannv@example.com
+
+  - name: High Memory Usage
+    description: Alert when available memory is less than 200MB
+    severity: 2  # Warning
+    query: |
+      performanceCounters
+      | where timestamp > ago(5m)
+      | where name == "Available Bytes"
+      | summarize avg(value) by bin(timestamp, 1m)
+      | where avg_value < 200000000
+    frequency: PT5M
+    timeWindow: PT5M
+    actions:
+      - type: email
+        email: quannv@example.com
+
+  - name: Dependency Failure
+    description: Alert when external dependencies fail
+    severity: 2  # Warning
+    query: |
+      dependencies
+      | where timestamp > ago(5m)
+      | where success == false
+      | summarize count() by target
+      | where count_ > 3
+    frequency: PT5M
+    timeWindow: PT5M
+    actions:
+      - type: email
+        email: quannv@example.com
+
+  - name: Exception Rate High
+    description: Alert when exception count exceeds threshold
+    severity: 1  # Error
+    query: |
+      exceptions
+      | where timestamp > ago(5m)
+      | summarize count()
+      | where count_ > 10
+    frequency: PT5M
+    timeWindow: PT5M
+    actions:
+      - type: email
+        email: quannv@example.com
