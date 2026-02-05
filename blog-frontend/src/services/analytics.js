@@ -5,7 +5,7 @@ let initialized = false;
 
 export const initGA = () => {
   if (!TRACKING_ID) {
-    console.warn('⚠️ Google Analytics tracking ID not found');
+    console.warn('');
     return;
   }
   

@@ -23,12 +23,6 @@ function BlogApp() {
   const [loading, setLoading] = useState(true);
   const { token, user } = useAuth();
 
-  // Initialize Google Analytics
-  useEffect(() => {
-    console.log('🔍 Checking GA Tracking ID:', process.env.REACT_APP_GA_TRACKING_ID);
-    initGA();
-    trackPageView(window.location.pathname, 'Blog Home');
-  }, []);
 
   // Track user login
   useEffect(() => {
