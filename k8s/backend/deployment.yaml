@@ -44,7 +44,14 @@ spec:
               name: blog-backend-secrets
               key: openid-client-secret
         - name: OPENID_REDIRECT_URI
-          value: "https://quannv.id.vn/api/auth/callback" 
+          value: "https://quannv.id.vn/api/auth/callback"
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: APPLICATIONINSIGHTS_CONNECTION_STRING
+        - name: NODE_ENV
+          value: "production"
         livenessProbe:
           httpGet:
             path: /api/health
