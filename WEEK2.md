@@ -38,7 +38,7 @@ The application implements two complementary monitoring systems:
 
 ## Production and Product Metrics setup
 
-### 8.1 Architecture
+### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -73,11 +73,11 @@ The application implements two complementary monitoring systems:
 
 ---
 
-### 8.2 Azure Application Insights Setup
+###  Azure Application Insights Setup
 
 **Purpose**: Monitor backend API performance, errors, dependencies, and custom metrics.
 
-#### 8.2.1 Install Application Insights SDK
+#### Install Application Insights SDK
 
 ```bash
 cd backend
@@ -86,7 +86,7 @@ npm install applicationinsights@^2.9.6
 
 **Important**: Use v2.9.6 instead of v3.x to avoid OpenTelemetry crypto module issues in Alpine containers.
 
-#### 8.2.2 Backend Integration
+#### Backend Integration
 
 Create `backend/appInsights.js`:
 
@@ -158,17 +158,17 @@ Application Insights initialized
 
 ---
 
-### 8.3 Google Analytics 4 Setup
+###  Google Analytics 4 Setup
 
 **Purpose**: Track user interactions, page views, and product metrics.
 
-#### 8.3.1 Create GA4 Property
+#### Create GA4 Property
 
 1. Go to [Google Analytics](https://analytics.google.com)
 2. Create new GA4 property
 3. Get Measurement ID (format: `G-XXXXXXXXXX`)
 
-#### 8.3.2 Frontend Integration
+#### Frontend Integration
 
 Add gtag.js snippet to `blog-frontend/public/index.html`:
 
@@ -192,7 +192,7 @@ Add gtag.js snippet to `blog-frontend/public/index.html`:
 </html>
 ```
 
-#### 8.3.3 Install React GA4 Package
+#### Install React GA4 Package
 
 ```bash
 cd blog-frontend
@@ -205,7 +205,7 @@ Create `.env` file:
 REACT_APP_GA_TRACKING_ID=G-RZ3H15V2B1
 ```
 
-#### 8.3.4 Create Analytics Service
+#### Create Analytics Service
 
 Create `blog-frontend/src/services/analytics.js`:
 
@@ -224,7 +224,7 @@ export const initGA = () => {
 
 ```
 
-#### 8.3.5 Integrate in React App
+#### Integrate in React App
 
 Update `blog-frontend/src/App.js`:
 
@@ -248,7 +248,7 @@ function App() {
 }
 ```
 
-#### 8.3.6 Deploy Updated Frontend
+#### Deploy Updated Frontend
 
 ```bash
 # Rebuild with analytics
@@ -261,18 +261,17 @@ kubectl rollout restart deployment blog-frontend
 
 ---
 
-### 8.4 Accessing Metrics
+### Accessing Metrics
 
 This section provides direct access links and navigation instructions for both Azure Application Insights and Google Analytics 4.
 
-#### 8.4.1 Application Insights (Production Metrics)
+#### Application Insights (Production Metrics)
 
 **Direct Access Links:**
-- **Azure Portal**: https://portal.azure.com/?l=en.en-us#@mindx.com.vn/resource/subscriptions/f244cdf7-5150-4b10-b3f2-d4bff23c5f45/resourceGroups/mindx-intern-01-rg/providers/microsoft.insights/components/app_insight/overview
-- **Application Insights Resource**: Navigate to `Home > Application Insights > mindx-intern-01-rg `
-- **Quick Access**: Use Azure Portal search bar and type "Application Insights"
+- **Azure Portal**: https://portal.azure.com/
+- Access Dashboard, choose Application Insights and create.
 
-
+![Azure Application Insights - Dashboard](images/image.png)
 
 **Key Views**:
 
@@ -280,22 +279,30 @@ This section provides direct access links and navigation instructions for both A
    - Navigate to: `Live Metrics`
    - View: Incoming requests, dependencies, exceptions
    - Use for: Live debugging, deployment verification
+   ![Azure Application Insights - Live Metrics](images/image.png)
 
 2. **Performance**: Request duration and throughput
    - Navigate to: `Investigate > Performance`
    - View: Operation duration, dependency calls
    - Filter by: Time range, operation name
+   ![Azure Application Insights - Performance](images/image-1.png)
 
 3. **Failures**: Errors and exceptions
    - Navigate to: `Investigate > Failures`
    - View: Exception types, failed requests
    - Drill into: Stack traces, request details
+   ![Azure Application Insights - Failures](images/image-2.png)
 
+4. **Alert** : Alerts are configured in Azure Portal
+    - Exception rate > threshold
+    - Response time > threshold
+    - Failed requests > threshold
+    ![Azure Application Insights - Alerts](images/image-3.png)
 
-#### 8.4.2 Google Analytics 4 (Product Metrics)
+#### Google Analytics 4 (Product Metrics)
 
 **Direct Access Links:**
-- **Google Analytics**: https://analytics.google.com
+- **Google Analyst** : https://analytics.google.com/analytics/web/
 - **Direct Property Access**: https://analytics.google.com/analytics/web/?authuser=1#/a383267235p523118767/reports/intelligenthome
 - **My Property ID**: G-RZ3H15V2B1
 
@@ -305,18 +312,15 @@ This section provides direct access links and navigation instructions for both A
    - Navigate to: `Reports > Realtime`
    - View: Active users, events, page views
    - Use for: Deployment verification, live testing
+   ![Google Analytics - Realtime Report](images/image-4.png)
 
 2. **Engagement**: User interactions
    - Navigate to: `Reports > Engagement > Events`
    - View: Event count, users, conversions
-   - Track: Likes, comments, searches
+   ![Google Analytics - Events](images/image-5.png)
 
-3. **User Acquisition**: Traffic sources
-   - Navigate to: `Reports > Acquisition`
-   - View: User source, medium, campaign
-   - Analyze: Where users come from
 
-4. **Pages and Screens**: Content performance
+3. **Pages and Screens**: Content performance
    - Navigate to: `Reports > Engagement > Pages and screens`
    - View: Page views, average time
    - Identify: Popular content
@@ -324,18 +328,10 @@ This section provides direct access links and navigation instructions for both A
 
 ---
 
-### 8.5 Azure Alerts Configuration
 
-1. Go to: Application Insights > Alerts > New alert rule
-2. Select scope: Your Application Insights resource
-3. Add condition: Choose from templates or custom KQL query
-4. Configure action group: Email, SMS, webhook, etc.
-5. Define alert details: Name, severity, description
-6. Create alert rule
 
----
 
-### 8.6 Testing and Verification
+### Testing and Verification
 
 **Azure Application Insights:**
 - [ ] Backend logs appear in Live Metrics
@@ -343,10 +339,6 @@ This section provides direct access links and navigation instructions for both A
 - [ ] Custom metrics (RequestDuration) are visible
 - [ ] Alerts are configured and functioning
 
-![Azure Application Insights - Live Metrics](images/image.png)
-![Azure Application Insights - Performance](images/image-1.png)
-![Azure Application Insights - Failures](images/image-3.png)
-![Azure Application Insights - Logs](images/image-4.png)
 
 **Google Analytics:**
 - [ ] Page views are tracked
@@ -355,83 +347,7 @@ This section provides direct access links and navigation instructions for both A
 - [ ] Event parameters are captured
 - [ ] Sessions and user counts are accurate
 
-![Google Analytics - Realtime Report](images/image-5.png)
-![Google Analytics - Events](images/image-2.png)
+
 
 ---
 
-## Documentation
-
-### How to Access Metrics
-
-This section provides direct access links and step-by-step instructions to view production and product metrics.
-
-**Quick Links**:
-- 🔗 **Azure Portal**: https://portal.azure.com
-- 🔗 **Application Insights**: Search "Application Insights" in Azure Portal
-- 🔗 **Google Analytics 4**: https://analytics.google.com
-
----
-
-#### Azure Application Insights
-
-
-**Navigation Path**: 
-```
-Azure Portal → Home → Application Insights → mindx-intern-rg-01
-```
-
-**Quick Access Paths**:
-1. **Real-time monitoring**: Live Metrics
-   - URL: `https://portal.azure.com/#@mindx.com.vn/resource/subscriptions/f244cdf7-5150-4b10-b3f2-d4bff23c5f45/resourceGroups/mindx-intern-01-rg/providers/microsoft.insights/components/app_insight/quickPulse`
-2. **Performance analysis**: Investigate → Performance
-3. **Error tracking**: Investigate → Failures
-
-**Common Queries**:
-- Error rate over time
-- Response time percentiles (P50, P95, P99)
-- Request volume by endpoint
-- Dependency call duration
-
-#### Google Analytics 4
-
-**Direct Access Links**:
-- **GA4 Home**: https://analytics.google.com
-- **Select Account**: https://analytics.google.com/analytics/web/
-- **Property ID**: G-RZ3H15V2B1
-
-**Navigation Path**:
-```
-analytics.google.com → Login → Select Account → Select Property (G-RZ3H15V2B1)
-```
-
-**Quick Access Paths**:
-1. **Live users**: Reports → Realtime
-   - Direct URL: `https://analytics.google.com/analytics/web/?authuser=1#/a383267235p523118767/reports/intelligenthome`
-
-**Key Metrics**:
-- Active users (1-day, 7-day, 28-day)
-- Event count by type
-- User engagement rate
-- Session duration
-
----
-
-
-### Documentation
-- [Azure Application Insights Documentation](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
-- [Google Analytics 4 Documentation](https://support.google.com/analytics/answer/10089681)
-
-
-### Learning Resources
-- [Application Insights Tutorial](https://docs.microsoft.com/en-us/azure/azure-monitor/app/tutorial-runtime-exceptions)
-- [GA4 Setup Guide](https://support.google.com/analytics/answer/9304153)
-
-
-### Tools
-- [Application Insights Profiler](https://docs.microsoft.com/en-us/azure/azure-monitor/profiler/profiler)
-- [GA Debugger Chrome Extension](https://chrome.google.com/webstore/detail/google-analytics-debugger)
-
----
-
-**Previous:** [Week 1: Deployment on AKS](WEEK1.md)
