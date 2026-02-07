@@ -19,8 +19,8 @@ This project is divided into two weeks:
 - Phase 6: OpenID Connect Authentication
 - Phase 7: HTTPS & SSL Certificates
 
-### 📗 [Week 2: Monitoring & Analytics](WEEK2.md)
-- Phase 8: Monitoring & Analytics
+### 📗 [Week 2: Production and Product Metrics setup](WEEK2.md)
+- Production and Product Metrics setup
   - Azure Application Insights Setup
   - Google Analytics 4 Integration
   - Accessing Metrics
