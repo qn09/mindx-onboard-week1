@@ -6,21 +6,6 @@
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-- [: Production and Product Metrics setup](#Production and Product Metrics setup)
-  - [Azure Application Insights Setup](#82-azure-application-insights-setup)
-  - [Google Analytics 4 Setup](#83-google-analytics-4-setup)
-  - [Accessing Metrics](#84-accessing-metrics)
-  - [Azure Alerts Configuration](#85-azure-alerts-configuration)
-  - [Testing and Verification](#86-testing-and-verification)
-- [Documentation](#documentation)
-  - [How to Access Metrics](#how-to-access-metrics)
-- [Additional Resources](#additional-resources)
-
----
-
 ## Overview
 
 This week focuses on implementing comprehensive monitoring and analytics for both production infrastructure (Azure Application Insights) and product usage (Google Analytics 4).
@@ -279,7 +264,7 @@ This section provides direct access links and navigation instructions for both A
    - Navigate to: `Live Metrics`
    - View: Incoming requests, dependencies, exceptions
    - Use for: Live debugging, deployment verification
-   ![Azure Application Insights - Live Metrics](images/image.png)
+   ![Azure Application Insights - Live Metrics](images/image-6.png)
 
 2. **Performance**: Request duration and throughput
    - Navigate to: `Investigate > Performance`
@@ -320,10 +305,6 @@ This section provides direct access links and navigation instructions for both A
    ![Google Analytics - Events](images/image-5.png)
 
 
-3. **Pages and Screens**: Content performance
-   - Navigate to: `Reports > Engagement > Pages and screens`
-   - View: Page views, average time
-   - Identify: Popular content
 
 
 ---
