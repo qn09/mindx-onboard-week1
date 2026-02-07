@@ -14,50 +14,9 @@ The application implements two complementary monitoring systems:
 - **Azure Application Insights**: Production infrastructure and performance monitoring
 - **Google Analytics 4**: Product analytics and user behavior tracking
 
-**📊 Quick Access to Metrics**:
-- **Azure Portal**: https://portal.azure.com → Search "Application Insights"
-- **Google Analytics**: https://analytics.google.com → Property: G-RZ3H15V2B1
-- **Detailed Access Instructions**: See [How to Access Metrics](#how-to-access-metrics) section
-
 ---
-
 ## Production and Product Metrics setup
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Blog Application                        │
-│                                                             │
-│  ┌─────────────────┐              ┌─────────────────┐       │
-│  │    Frontend     │              │     Backend     │       │
-│  │   React App     │              │   Express API   │       │
-│  │                 │              │                 │       │
-│  │  ┌──────────┐   │              │  ┌──────────┐   │       │
-│  │  │ Google   │   │              │  │   App    │   │       │
-│  │  │Analytics │   │              │  │ Insights │   │       │
-│  │  │   (GA4)  │   │              │  │   SDK    │   │       │
-│  │  └────┬─────┘   │              │  └────┬─────┘   │       │
-│  └───────┼─────────┘              └───────┼─────────┘       │
-│          │                                │                 │
-└──────────┼────────────────────────────────┼─────────────────┘
-           │                                │
-           │                                │
-           ▼                                ▼
-  ┌────────────────┐              ┌────────────────────┐
-  │  Google        │              │  Azure Application │
-  │  Analytics 4   │              │     Insights       │
-  │                │              │                    │
-  │ • Page Views   │              │ • API Metrics      │
-  │ • Events       │              │ • Performance      │
-  │ • Sessions     │              │ • Errors/Logs      │
-  │ • User Flow    │              │ • Dependencies     │
-  └────────────────┘              │ • Alerts           │
-                                  └────────────────────┘
-```
-
 ---
-
 ###  Azure Application Insights Setup
 
 **Purpose**: Monitor backend API performance, errors, dependencies, and custom metrics.
