@@ -278,10 +278,11 @@ This section provides direct access links and navigation instructions for both A
    - Drill into: Stack traces, request details
    ![Azure Application Insights - Failures](images/image-2.png)
 
-4. **Alert** : Alerts are configured in Azure Portal
-    - Exception rate > threshold
-    - Response time > threshold
-    - Failed requests > threshold
+4. **Alert** : 
+    - Alerts are configured in Azure Portal
+    - Receive email notifications when:
+      - Exception rate > threshold
+      - Response time > threshold
     ![Azure Application Insights - Alerts](images/image-3.png)
 
 #### Google Analytics 4 (Product Metrics)
