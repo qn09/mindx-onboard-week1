@@ -30,9 +30,8 @@ This project is divided into two weeks:
 ---
 
 ## Quick Start
-
 1. **Week 1**: Follow [WEEK1.md](WEEK1.md) to deploy the application to AKS
-2. **Week 2**: Follow [WEEK2.md](WEEK2.md) to add monitoring and analytics
+2. **Week 2**: Follow [WEEK2.md](WEEK2.md) to set up Production and Product Metrics
 
 ---
 

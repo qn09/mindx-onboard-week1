@@ -1,4 +1,4 @@
-# Blog Application - Week 2: Monitoring & Analytics
+# Blog Application - Week 2: Production and Product Metrics setup
 
 **Project Overview:** Implement production and product metrics for the blog application using Azure Application Insights and Google Analytics 4.
 
@@ -9,7 +9,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Phase 8: Monitoring & Analytics](#phase-8-monitoring--analytics)
+- [: Production and Product Metrics setup](#Production and Product Metrics setup)
   - [Azure Application Insights Setup](#82-azure-application-insights-setup)
   - [Google Analytics 4 Setup](#83-google-analytics-4-setup)
   - [Accessing Metrics](#84-accessing-metrics)
@@ -36,14 +36,14 @@ The application implements two complementary monitoring systems:
 
 ---
 
-## Phase 8: Monitoring & Analytics
+## Production and Product Metrics setup
 
 ### 8.1 Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     Blog Application                          │
-│                                                               │
+┌─────────────────────────────────────────────────────────────┐
+│                     Blog Application                        │
+│                                                             │
 │  ┌─────────────────┐              ┌─────────────────┐       │
 │  │    Frontend     │              │     Backend     │       │
 │  │   React App     │              │   Express API   │       │
@@ -54,11 +54,11 @@ The application implements two complementary monitoring systems:
 │  │  │   (GA4)  │   │              │  │   SDK    │   │       │
 │  │  └────┬─────┘   │              │  └────┬─────┘   │       │
 │  └───────┼─────────┘              └───────┼─────────┘       │
-│          │                                 │                 │
-└──────────┼─────────────────────────────────┼─────────────────┘
-           │                                 │
-           │                                 │
-           ▼                                 ▼
+│          │                                │                 │
+└──────────┼────────────────────────────────┼─────────────────┘
+           │                                │
+           │                                │
+           ▼                                ▼
   ┌────────────────┐              ┌────────────────────┐
   │  Google        │              │  Azure Application │
   │  Analytics 4   │              │     Insights       │
@@ -268,7 +268,7 @@ This section provides direct access links and navigation instructions for both A
 #### 8.4.1 Application Insights (Production Metrics)
 
 **Direct Access Links:**
-- **Azure Portal**: https://portal.azure.com
+- **Azure Portal**: https://portal.azure.com/?l=en.en-us#@mindx.com.vn/resource/subscriptions/f244cdf7-5150-4b10-b3f2-d4bff23c5f45/resourceGroups/mindx-intern-01-rg/providers/microsoft.insights/components/app_insight/overview
 - **Application Insights Resource**: Navigate to `Home > Application Insights > mindx-intern-01-rg `
 - **Quick Access**: Use Azure Portal search bar and type "Application Insights"
 
@@ -291,17 +291,13 @@ This section provides direct access links and navigation instructions for both A
    - View: Exception types, failed requests
    - Drill into: Stack traces, request details
 
-4. **Logs**: KQL queries
-   - Navigate to: `Monitoring > Logs`
-   - Query language: Kusto Query Language (KQL)
-
 
 #### 8.4.2 Google Analytics 4 (Product Metrics)
 
 **Direct Access Links:**
 - **Google Analytics**: https://analytics.google.com
 - **Direct Property Access**: https://analytics.google.com/analytics/web/?authuser=1#/a383267235p523118767/reports/intelligenthome
-- **Your Property ID**: G-RZ3H15V2B1
+- **My Property ID**: G-RZ3H15V2B1
 
 **Key Reports**:
 
@@ -324,13 +320,6 @@ This section provides direct access links and navigation instructions for both A
    - Navigate to: `Reports > Engagement > Pages and screens`
    - View: Page views, average time
    - Identify: Popular content
-
-**Custom Event Analysis**:
-
-1. Navigate to: `Explore > Free Form`
-2. Add dimensions: `Event name`, `Event label`
-3. Add metrics: `Event count`, `Total users`
-4. Filter by: Date range, user properties
 
 
 ---
