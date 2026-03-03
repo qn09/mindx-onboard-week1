@@ -16,7 +16,7 @@ Before analysis, the raw source file (`sample.xlsx`) was cleaned to ensure relia
 - **Workload Concentration:** Dashboard metrics show that **100% (149/149)** of ticket volume is routed to the Technical Support team. This concentration indicates systemic operational friction rather than isolated user errors.
 - **Resolution Velocity:** Although many tickets reached the "Resolved" stage, the absolute volume of 149 tickets in the reporting window still indicates an unsustainable operational pace that requires structural optimization.
 
-![Odoo Dashboard - Stage and Teams Overview](images/image-1.png)
+![Odoo Dashboard - Stage and Teams Overview](images/image1.png)
 
 ### 2.2 Category Analysis 
 
