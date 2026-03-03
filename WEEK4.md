@@ -2,9 +2,9 @@
 
 ## 1. Executive Summary
 
-During Week 4, the primary objective was to leverage Odoo reporting capabilities to analyze ticket patterns, evaluate operational performance, and build a data-driven improvement cycle.
+Week 4 focused on using Odoo reporting to identify recurring support issues, measure helpdesk performance, and define a practical improvement roadmap based on data.
 
-To ensure analytical validity, the raw dataset (`sample.xlsx`) underwent rigorous preprocessing. All records missing the "Subject" field were removed because incomplete data weakens Root Cause Analysis. After cleansing, exactly **149 valid support tickets** were imported into the Odoo Helpdesk module. This clean dataset became the basis for all dashboard insights and strategic recommendations.
+Before analysis, the raw source file (`sample.xlsx`) was cleaned to ensure reliability: all records without a "Subject" value were removed. After preprocessing, **149 valid tickets** were imported into Odoo Helpdesk and used as the official dataset for dashboard tracking, root-cause analysis, and action planning.
 
 ## 2. Dashboard Metrics & Data Evidence
 
@@ -18,7 +18,7 @@ To ensure analytical validity, the raw dataset (`sample.xlsx`) underwent rigorou
 
 ![Odoo Dashboard - Stage and Teams Overview](images/image-1.png)
 
-### 2.2 Category Analysis (The "What Repeats?" Principle)
+### 2.2 Category Analysis 
 
 By grouping the 149 tickets by Tags (Category), repeated system-failure patterns became clear. Two ecosystems dominate the queue:
 
@@ -27,7 +27,7 @@ By grouping the 149 tickets by Tags (Category), repeated system-failure patterns
 
 These leading categories account for a significant share of the technical workload, and targeting them will provide the highest Return on Investment (ROI) for ticket-volume reduction.
 
-![Odoo Dashboard - Category Analysis](images/image-2.png)
+![Odoo Dashboard - Category Analysis](images/image2.png)
 
 ## 3. Root Cause Analysis (Top 2 Recurring Issues)
 
